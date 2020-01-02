@@ -24,28 +24,19 @@ class VoiceGenderDataset(Dataset):
             idx = idx.tolist()
 
         sample = torchaudio.load(self.entries[idx])
-#        print(sample[0])
+
         sample = torchaudio.transforms.Resample(sample[1], 32000)(sample[0])
-        print(sample.size())
-  #      print(sample.dim())
+
         target = self.labels[idx]
 
         if self.transform is not None:
             sample = self.transform(sample)
 
-        print(sample.size())
-
         if not sample.dtype.is_floating_point:
-            sample = sample.to(torch.float32)
+            sample = sample.to(torch.float32)[0]
 
-        #print(len(sample))
         if len(sample) == 2:
-#            print(torch.mean(sample, 0, True))
             sample = torch.mean(sample, 0, True)
-
-        #print(len(sample))
-
- #       print("#####")
 
         return sample, torch.tensor([int(target == "k"), int(target == "m")])
 
@@ -62,7 +53,7 @@ vgd = VoiceGenderDataset("data/train", transform=torchaudio.transforms.MelSpectr
 
 for x in range(5):
     tensor = vgd.__getitem__(x)[0]
-    print((tensor).size())
-    print(tensor)
+    print((tensor[0]).size())
+    print(tensor[0])
     print("############")
 
