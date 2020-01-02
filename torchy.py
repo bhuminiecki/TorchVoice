@@ -8,7 +8,7 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 from model import Net
 from VoiceGenderDataset import VoiceGenderDataset
-from torchaudio.transforms import Spectrogram
+from torchaudio.transforms import MelSpectrogram
 # Training settings
 parser = argparse.ArgumentParser(description='PyTorch Super Res Example')
 parser.add_argument('--batchSize', type=int, default=1, help='training batch size')
@@ -29,8 +29,8 @@ torch.manual_seed(opt.seed)
 
 device = torch.device("cuda" if opt.cuda else "cpu")
 
-train_set = VoiceGenderDataset("data/train", transform=Spectrogram())
-testing_set = VoiceGenderDataset("data/test", transform=Spectrogram())
+train_set = VoiceGenderDataset("data/train", transform=MelSpectrogram(f_min=0.0, f_max=20000.0))
+testing_set = VoiceGenderDataset("data/test", transform=MelSpectrogram(f_min=0.0, f_max=20000.0))
 training_data_loader = DataLoader(dataset=train_set, num_workers=opt.threads, batch_size=opt.batchSize, shuffle=True)
 testing_data_loader = DataLoader(dataset=testing_set, num_workers=opt.threads, batch_size=opt.testBatchSize, shuffle=False)
 
