@@ -38,7 +38,17 @@ class VoiceGenderDataset(Dataset):
         if len(sample) == 2:
             sample = torch.mean(sample, 0, True)
 
-        return sample[0][0][40:350], torch.tensor([int(target == "k"), int(target == "m")])
+        sample = sample[0][0][44:300]
+
+        out = [0.0 for i in range(256)]
+
+        for i in range(len(sample)):
+            out[i] = sample[i]
+
+        out = torch.tensor(out)
+        out = out.reshape(1, 256)
+
+        return out, torch.tensor(int(target == "k"))
 
     def print_entries(self):
         print(self.entries)
@@ -50,6 +60,6 @@ class VoiceGenderDataset(Dataset):
 for x in range(5):
     tensor = vgd.__getitem__(x)[0]
     print((tensor).size())
-    print(tensor)
+#    print(tensor)
     print("############")
 """

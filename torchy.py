@@ -43,14 +43,11 @@ optimizer = optim.Adam(model.parameters(), lr=opt.lr)
 def train(epoch):
     epoch_loss = 0
     for iteration, batch in enumerate(training_data_loader, 1):
-        #print(len(batch[1]))
         input = batch[0].to(device)
         target = batch[1].to(device)
 
         optimizer.zero_grad()
-        #print(input)
-        #print(target)
-        #print(len(model(input)[0]))
+
         loss = criterion(model(input), target)
         epoch_loss += loss.item()
         loss.backward()
@@ -62,16 +59,15 @@ def train(epoch):
 
 
 def test():
-    avg_psnr = 0
+    avg_wrong= 0
     with torch.no_grad():
         for batch in testing_data_loader:
             input, target = batch[0].to(device), batch[1].to(device)
 
             prediction = model(input)
-            mse = criterion(prediction, target)
-            psnr = 10 * log10(1 / mse.item())
-            avg_psnr += psnr
-    print("===> Avg. PSNR: {:.4f} dB".format(avg_psnr / len(testing_data_loader)))
+            print(criterion(prediction, target))
+
+    print("===> Avg. PSNR: {:.4f} dB".format(1 / len(testing_data_loader)))
 
 
 def checkpoint(epoch):
