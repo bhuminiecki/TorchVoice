@@ -33,27 +33,23 @@ class VoiceGenderDataset(Dataset):
             sample = self.transform(sample)
 
         if not sample.dtype.is_floating_point:
-            sample = sample.to(torch.float32)[0]
+            sample = torch.tensor(sample.to(torch.float32)[0])
 
         if len(sample) == 2:
             sample = torch.mean(sample, 0, True)
 
-        return sample, torch.tensor([int(target == "k"), int(target == "m")])
+        return sample[0][0][40:350], torch.tensor([int(target == "k"), int(target == "m")])
 
     def print_entries(self):
         print(self.entries)
         print(self.labels)
 
 
-vgd = VoiceGenderDataset("data/train", transform=torchaudio.transforms.MelSpectrogram(f_min=0.0,
-                                                                                      f_max=20000.0,
-                                                                                      pad=1,
-                                                                                      n_fft=2000,
-                                                                                      sample_rate=32000))
+"""vgd = VoiceGenderDataset("data/train", transform=torchaudio.transforms.Spectrogram())
 
 for x in range(5):
     tensor = vgd.__getitem__(x)[0]
-    print((tensor[0]).size())
-    print(tensor[0])
+    print((tensor).size())
+    print(tensor)
     print("############")
-
+"""
