@@ -7,8 +7,8 @@ from torch.utils.data import Dataset
 class VoiceGenderDataset(Dataset):
 
     def __init__(self, root_dir, transform=None):
-        self.root_dir=root_dir
-        self.transform=transform
+        self.root_dir = root_dir
+        self.transform = transform
         self.entries = []
         self.labels = []
         for cat in os.walk(root_dir):
@@ -24,12 +24,26 @@ class VoiceGenderDataset(Dataset):
             idx = idx.tolist()
 
         sample = torchaudio.load(self.entries[idx])
+        sample = torchaudio.transforms.Resample(sample[1], 32000)(sample[0])
+  #      print(sample.dim())
         target = self.labels[idx]
 
         if self.transform is not None:
             sample = self.transform(sample)
 
-        return sample, target
+        if not sample.dtype.is_floating_point:
+            sample = sample.to(torch.float32)
+
+        #print(len(sample))
+        if len(sample) == 2:
+#            print(torch.mean(sample, 0, True))
+            sample = torch.mean(sample, int(not None), True)
+            sample = sample[0]
+        #print(len(sample))
+
+ #       print("#####")
+
+        return sample, torch.tensor([int(target == "k"), int(target == "m")])
 
     def print_entries(self):
         print(self.entries)
@@ -38,5 +52,6 @@ class VoiceGenderDataset(Dataset):
 
 vgd = VoiceGenderDataset("data/train")
 
-vgd.print_entries()
+for x in range(vgd.__len__()):
+    print((vgd.__getitem__(x)))
 

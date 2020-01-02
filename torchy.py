@@ -8,10 +8,11 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 from model import Net
 from VoiceGenderDataset import VoiceGenderDataset
+from torchaudio.transforms import Spectrogram
 # Training settings
 parser = argparse.ArgumentParser(description='PyTorch Super Res Example')
-parser.add_argument('--batchSize', type=int, default=10, help='training batch size')
-parser.add_argument('--testBatchSize', type=int, default=8, help='testing batch size')
+parser.add_argument('--batchSize', type=int, default=1, help='training batch size')
+parser.add_argument('--testBatchSize', type=int, default=1, help='testing batch size')
 parser.add_argument('--nEpochs', type=int, default=10, help='number of epochs to train for')
 parser.add_argument('--lr', type=float, default=0.01, help='Learning Rate. Default=0.01')
 parser.add_argument('--cuda', action='store_true', help='use cuda?')
@@ -28,13 +29,13 @@ torch.manual_seed(opt.seed)
 
 device = torch.device("cuda" if opt.cuda else "cpu")
 
-train_set = VoiceGenderDataset("data/train")
-testing_set = VoiceGenderDataset("data/test")
+train_set = VoiceGenderDataset("data/train", transform=Spectrogram())
+testing_set = VoiceGenderDataset("data/test", transform=Spectrogram())
 training_data_loader = DataLoader(dataset=train_set, num_workers=opt.threads, batch_size=opt.batchSize, shuffle=True)
 testing_data_loader = DataLoader(dataset=testing_set, num_workers=opt.threads, batch_size=opt.testBatchSize, shuffle=False)
 
 model = Net().to(device)
-criterion = nn.CTCLoss()
+criterion = nn.CrossEntropyLoss()
 
 optimizer = optim.Adam(model.parameters(), lr=opt.lr)
 
@@ -42,9 +43,14 @@ optimizer = optim.Adam(model.parameters(), lr=opt.lr)
 def train(epoch):
     epoch_loss = 0
     for iteration, batch in enumerate(training_data_loader, 1):
-        input, target = batch[0].to(device), batch[1].to(device)
+        #print(len(batch[1]))
+        input = batch[0].to(device)
+        target = batch[1].to(device)
 
         optimizer.zero_grad()
+        #print(input)
+        #print(target)
+        #print(len(model(input)[0]))
         loss = criterion(model(input), target)
         epoch_loss += loss.item()
         loss.backward()
