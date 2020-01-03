@@ -27,8 +27,8 @@ class Net(nn.Module):
         x = F.relu(x)
         x = self.dropout2(x)
         x = self.fc2(x)
-        output = F.log_softmax(x, dim=1)
-        return output
+        x = F.softmax(x)
+        return x
 
     def _initialize_weights(self):
         init.orthogonal_(self.conv1.weight, init.calculate_gain('relu'))
