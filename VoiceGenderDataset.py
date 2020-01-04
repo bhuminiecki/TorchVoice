@@ -48,7 +48,9 @@ class VoiceGenderDataset(Dataset):
 
         out.resize_(1, 10000)
 
-        return out, torch.tensor([float(target == "k"), float(target != "k")])
+        target = torch.tensor(1 if (target == "k") else 0).to(torch.long)
+
+        return out, target
 
     def print_entries(self):
         print(self.entries)

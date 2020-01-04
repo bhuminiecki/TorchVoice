@@ -11,15 +11,15 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix
 import numpy as np
 
-model = torch.load("model/model_epoch_47.pth")
+model = torch.load("model/model_epoch_20.pth")
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-testing_set = VoiceGenderDataset("data/input", transform=Spectrogram())
+testing_set = VoiceGenderDataset("data/input")
 testing_data_loader = DataLoader(dataset=testing_set, num_workers=4, batch_size=1, shuffle=False)
 
 model = Net().to(device)
-criterion = nn.SmoothL1Loss()
+criterion = nn.CrossEntropyLoss()
 
 classes = ["m", "k"]
 
@@ -35,7 +35,7 @@ def test():
             prediction = model(input.to(device))
 
             predicted_class = prediction.argmax().item()
-            target_class = target.argmax().item()
+            target_class = target.item()
 
             print(classes[predicted_class])
 
