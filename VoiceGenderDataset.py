@@ -1,8 +1,10 @@
 import os
 import torch
-import torchaudio
+#import torchaudio
 from torch.utils.data import Dataset
-
+from librosa import load, piptrack
+import numpy as np
+from entropy import spectral_entropy
 
 class VoiceGenderDataset(Dataset):
 
@@ -23,10 +25,8 @@ class VoiceGenderDataset(Dataset):
         if torch.is_tensor(idx):
             idx = idx.tolist()
 
-        sample = torchaudio.load(self.entries[idx])
+        '''sample = torchaudio.load(self.entries[idx])
         sample = torchaudio.transforms.Resample(sample[1], 32000)(sample[0])
-
-        target = self.labels[idx]
 
         if not sample.dtype.is_floating_point:
             sample = torch.tensor(sample.to(torch.float32)[0])
@@ -46,11 +46,24 @@ class VoiceGenderDataset(Dataset):
 
         out = torch.tensor(out)
 
-        out.resize_(1, 10000)
+        out.resize_(1, 10000)'''
+
+        target = self.labels[idx]
 
         target = torch.tensor(1 if (target == "k") else 0).to(torch.long)
 
-        return out, target
+        y, sr = load(self.entries[idx])
+        pitches, magnitudes = piptrack(y=y, sr=sr, fmin=75, fmax=275)
+        q25 = 0.0
+        iqr = 0.0
+        fun = 0.0
+
+        if len(pitches[np.nonzero(pitches)]) > 0:
+            q25 = np.percentile(pitches[np.nonzero(pitches)], 25)
+            iqr = np.percentile(pitches[np.nonzero(pitches)], 75) - q25
+            entropy = spectral_entropy(y, 36000)
+
+        return torch.tensor([q25, iqr, entropy]), target
 
     def print_entries(self):
         print(self.entries)
