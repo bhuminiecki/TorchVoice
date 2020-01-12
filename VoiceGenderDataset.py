@@ -4,7 +4,8 @@ import torch
 from torch.utils.data import Dataset
 from librosa import load, piptrack
 import numpy as np
-from entropy import spectral_entropy
+from entropy.entropy.entropy import spectral_entropy
+from scipy.signal.windows import blackmanharris
 
 class VoiceGenderDataset(Dataset):
 
@@ -56,25 +57,30 @@ class VoiceGenderDataset(Dataset):
         pitches, magnitudes = piptrack(y=y, sr=sr, fmin=75, fmax=275)
         q25 = 0.0
         iqr = 0.0
-        fun = 0.0
-
+        freq = 0.0
         if len(pitches[np.nonzero(pitches)]) > 0:
             q25 = np.percentile(pitches[np.nonzero(pitches)], 25)
             iqr = np.percentile(pitches[np.nonzero(pitches)], 75) - q25
-            entropy = spectral_entropy(y, 36000)
 
-        return torch.tensor([q25, iqr, entropy]), target
+            windowed = y * blackmanharris(len(y))
+            f = np.fft.rfft(windowed)
+            median = np.argmax(abs(f))
+            freq = median / len(windowed)
+
+        out = torch.tensor([q25, iqr, freq])
+        out.resize_(1, 3)
+        return out, target
 
     def print_entries(self):
         print(self.entries)
         print(self.labels)
 
 
-"""vgd = VoiceGenderDataset("data/train", transform=None)
+'''vgd = VoiceGenderDataset("data/train", transform=None)
 
-for x in range(5):
+for x in range(80):
     tensor = vgd.__getitem__(x)[0]
-    print((tensor).size())
-#    print(tensor)
-    print("############")
-"""
+#    print((tensor).size())
+    print(tensor)
+#    print("############")
+'''

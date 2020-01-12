@@ -5,20 +5,20 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 from model import Net
 from VoiceGenderDataset import VoiceGenderDataset
-from torchaudio.transforms import Spectrogram
+#from torchaudio.transforms import Spectrogram
 
 import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix
 import numpy as np
 
-model = torch.load("model/model_epoch_20.pth")
+model = torch.load("model/model_epoch_18.pth")
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 testing_set = VoiceGenderDataset("data/input")
 testing_data_loader = DataLoader(dataset=testing_set, num_workers=4, batch_size=1, shuffle=False)
 
-model = Net().to(device)
+model = model.to(device).eval()
 criterion = nn.CrossEntropyLoss()
 
 classes = ["m", "k"]
@@ -47,9 +47,9 @@ def test():
             avg_acc += (predicted_class == target_class)
             avg_loss += res
 
+    print('Accuracy: ' + avg_acc/len(testing_data_loader))
     confused = confusion_matrix(targets, predictions)
     return confused
-
 
 res = test()
 fig, ax = plt.subplots()
@@ -67,7 +67,7 @@ plt.setp(ax.get_xticklabels(), ha="right",
 for i in range(len(classes)):
     for j in range(len(classes)):
         text = ax.text(j, i, res[i, j],
-                       ha="center", va="center", color="w")
+                       ha="center", va="center", color="gray")
 
 ax.tick_params(axis='both', which='major', labelsize=10)
 ax.set_title("Confusion matrix")
