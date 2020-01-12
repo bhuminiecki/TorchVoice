@@ -28,7 +28,7 @@ class Net(nn.Module):
         x = F.relu(x)
         x = self.dropout2(x)
         x = self.fc2(x)
-        x = F.softmax(x)
+        x = F.softmax(x, dim=0)
         return x
 
     def _initialize_weights(self):

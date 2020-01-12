@@ -7,18 +7,16 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 from model import Net
 from VoiceGenderDataset import VoiceGenderDataset
-#from torchaudio.transforms import Spectrogram
-
 import matplotlib.pyplot as plt
 
 # Training settings
 parser = argparse.ArgumentParser(description='PyTorch Super Res Example')
 parser.add_argument('--batchSize', type=int, default=6, help='training batch size')
 parser.add_argument('--testBatchSize', type=int, default=1, help='testing batch size')
-parser.add_argument('--nEpochs', type=int, default=20, help='number of epochs to train for')
+parser.add_argument('--nEpochs', type=int, default=5, help='number of epochs to train for')
 parser.add_argument('--lr', type=float, default=0.001, help='Learning Rate. Default=0.01')
 parser.add_argument('--threads', type=int, default=16, help='number of threads for data loader to use')
-parser.add_argument('--seed', type=int, default=1337, help='random seed to use. Default=123')
+parser.add_argument('--seed', type=int, default=2137, help='random seed to use. Default=123')
 opt = parser.parse_args()
 
 print(opt)
@@ -88,7 +86,9 @@ train_history = []
 test_history = []
 acc_history = []
 for epoch in range(1, opt.nEpochs + 1):
+    model.train()
     train_history.append(train(epoch))
+    model.eval()
     res = test()
     test_history.append(res[0])
     acc_history.append((res[1]))

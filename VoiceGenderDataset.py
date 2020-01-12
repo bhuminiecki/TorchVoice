@@ -1,11 +1,11 @@
 import os
 import torch
-#import torchaudio
 from torch.utils.data import Dataset
+from loader import load_file
 from librosa import load, piptrack
 import numpy as np
-from entropy.entropy.entropy import spectral_entropy
 from scipy.signal.windows import blackmanharris
+
 
 class VoiceGenderDataset(Dataset):
 
@@ -26,29 +26,6 @@ class VoiceGenderDataset(Dataset):
         if torch.is_tensor(idx):
             idx = idx.tolist()
 
-        '''sample = torchaudio.load(self.entries[idx])
-        sample = torchaudio.transforms.Resample(sample[1], 32000)(sample[0])
-
-        if not sample.dtype.is_floating_point:
-            sample = torch.tensor(sample.to(torch.float32)[0])
-
-        if len(sample) == 2:
-            sample = torch.mean(sample, 0, True)
-
-        if self.transform is not None:
-            sample = self.transform(sample)
-
-        sample = sample[0][0:10000]
-
-        out = [0.0 for i in range(10000)]
-
-        for i in range(len(sample)):
-            out[i] = sample[i]
-
-        out = torch.tensor(out)
-
-        out.resize_(1, 10000)'''
-
         target = self.labels[idx]
 
         target = torch.tensor(1 if (target == "k") else 0).to(torch.long)
@@ -63,12 +40,12 @@ class VoiceGenderDataset(Dataset):
             iqr = np.percentile(pitches[np.nonzero(pitches)], 75) - q25
 
             windowed = y * blackmanharris(len(y))
-            f = np.fft.rfft(windowed)
-            median = np.argmax(abs(f))
+            median = np.argmax(abs(np.fft.rfft(windowed)))
             freq = median / len(windowed)
 
         out = torch.tensor([q25, iqr, freq])
         out.resize_(1, 3)
+
         return out, target
 
     def print_entries(self):
